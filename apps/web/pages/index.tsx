@@ -1,27 +1,44 @@
+import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
 import Head from 'next/head';
-import { Button } from 'ui';
+import Image from 'next/image';
+import UAParser from 'ua-parser-js';
 
+import test from '/public/test.jpg';
+
+import { useMediaQuery } from '../useMediaQuery';
 import styles from './index.module.scss';
 
-export default function Home() {
+interface IndexPageProps {
+  isMobileUserAgent: boolean;
+}
+
+export default function Home({ isMobileUserAgent }: IndexPageProps) {
+  const isMobile = useMediaQuery(isMobileUserAgent);
+
   return (
     <>
       <Head>
-        <title>Create Next App</title>
+        <title>Hello media query!</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing <code>pages/index.tsx</code>
-        </p>
-
-        <Button />
+        <p>{isMobile ? 'mobile' : 'desktop'}</p>
+        <Image src={test} alt="blah"></Image>
       </main>
     </>
   );
+}
+
+export function getServerSideProps({
+  req,
+}: GetServerSidePropsContext): GetServerSidePropsResult<IndexPageProps> {
+  const userAgent = new UAParser(req.headers['user-agent']);
+  const deviceType = userAgent.getDevice().type;
+
+  return {
+    props: {
+      isMobileUserAgent: deviceType === 'mobile' || deviceType === 'tablet',
+    },
+  };
 }
